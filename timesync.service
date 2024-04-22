@@ -1,0 +1,13 @@
+# /etc/systemd/system/timesync.service
+[Unit]
+Description=time sync using HTTP Date header
+Wants=network-online.target network.target
+After=network-online.target network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c '{ exec {sleep}<> <(:); while ! : >/dev/tcp/time.google.com/80; do read -r -t 1 -u $$sleep; done; } 2>/dev/null; true'
+ExecStart=/bin/bash -c 'timedatectl set-time "$(date +"%%Y-%%m-%%d %%H:%%M:%%S %%Z" -d"$(curl -sSI http://time.google.com | grep -i "Date: " | cut -d" " -f2-)")"'
+
+[Install]
+WantedBy=multi-user.target
